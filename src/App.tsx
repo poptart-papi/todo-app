@@ -22,6 +22,12 @@ const App: React.FC = () => {
     setTodos(prevTodos => prevTodos.filter(todo => todo.id !== id));
   };
 
+  const handleEdit = (id: number, text: string) => {
+    setTodos(prevTodos =>
+      prevTodos.map(todo => (todo.id === id ? { ...todo, text } : todo))
+    );
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (newTodo.trim() !== '') {
@@ -43,7 +49,12 @@ const App: React.FC = () => {
         />
         <button type="submit">Add</button>
       </form>
-      <TodoList todos={todos} onToggle={handleToggle} onDelete={handleDelete} />
+      <TodoList
+        todos={todos}
+        onToggle={handleToggle}
+        onDelete={handleDelete}
+        onEdit={handleEdit}
+      />
     </div>
   );
 };
