@@ -1,44 +1,58 @@
-import React from 'react';
-import TodoItem from './TodoItem.tsx';
+import React, { useState } from 'react';
 
-interface Todo {
+interface TodoItem {
   id: number;
   text: string;
-  description: string;
-  dueDate: string;
-  completed: boolean;
 }
 
 interface TodoListProps {
-  todos: Todo[];
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-  onEdit: (
-    id: number,
-    text: string,
-    description: string,
-    dueDate: string
-  ) => void;
+  projectId: number;
 }
 
-const TodoList: React.FC<TodoListProps> = ({
-  todos,
-  onToggle,
-  onDelete,
-  onEdit,
-}) => {
+const TodoList: React.FC<TodoListProps> = ({ projectId }) => {
+  const [todoItems, setTodoItems] = useState<TodoItem[]>([]);
+  const [inputValue, setInputValue] = useState<string>('');
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
+  };
+
+  const handleAddTodoItem = () => {
+    if (inputValue.trim() !== '') {
+      const newTodoItem: TodoItem = {
+        id: Date.now(),
+        text: inputValue,
+      };
+      setTodoItems([...todoItems, newTodoItem]);
+      setInputValue('');
+    }
+  };
+
+  const handleRemoveTodoItem = (itemId: number) => {
+    const updatedTodoItems = todoItems.filter(item => item.id !== itemId);
+    setTodoItems(updatedTodoItems);
+  };
+
   return (
-    <ul>
-      {todos.map(todo => (
-        <TodoItem
-          key={todo.id}
-          todo={todo}
-          onToggle={onToggle}
-          onDelete={onDelete}
-          onEdit={onEdit}
-        />
-      ))}
-    </ul>
+    <div>
+      <input
+        type="text"
+        value={inputValue}
+        onChange={handleInputChange}
+        placeholder="What's next?"
+      />
+      <button onClick={() => handleAddTodoItem}>Let's do it</button>
+      <ul>
+        {todoItems.map(item => {
+          <li key={item.id}>
+            {item.text}
+            <button onClick={() => handleRemoveTodoItem(item.id)}>
+              Remove
+            </button>
+          </li>;
+        })}
+      </ul>
+    </div>
   );
 };
 
