@@ -1,8 +1,13 @@
 import React from 'react';
-import ProjectList from './ProjectList.tsx';
+import { ProjectList } from './components/ProjectList';
+import './App.css';
 
-const App: React.FC = () => {
-  return ProjectList();
-};
+function App() {
+  return (
+    <div className="App">
+      <ProjectList />
+    </div>
+  );
+}
 
 export default App;
