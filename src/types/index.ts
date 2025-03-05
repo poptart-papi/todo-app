@@ -1,6 +1,7 @@
 export interface TodoItem {
   id: number;
   text: string;
+  details: string;
   completed: boolean;
   priority: 'low' | 'medium' | 'high';
 }
@@ -16,8 +17,9 @@ export interface Project {
   id: number;
   title: string;
   description: string;
-  todoLists: TodoList[];
   priority: 'low' | 'medium' | 'high';
+  dueDate: string | null;
+  todoLists: TodoList[];
 }
 
 export interface ProjectList {

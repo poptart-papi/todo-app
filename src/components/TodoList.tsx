@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { TodoList as TodoListType, TodoItem as TodoItemType, Priority } from '../types';
+import {
+  TodoList as TodoListType,
+  TodoItem as TodoItemType,
+  Priority,
+} from '../types';
 import { TodoItem } from './TodoItem';
 
 interface TodoListProps {
@@ -8,8 +12,13 @@ interface TodoListProps {
   onUpdateList: (updates: Partial<TodoListType>) => void;
 }
 
-export const TodoList: React.FC<TodoListProps> = ({ list, onToggleTodo, onUpdateList }) => {
+export const TodoList: React.FC<TodoListProps> = ({
+  list,
+  onToggleTodo,
+  onUpdateList,
+}) => {
   const [newTodoText, setNewTodoText] = useState('');
+  const [newTodoDetails, setNewTodoDetails] = useState('');
   const [newTodoPriority, setNewTodoPriority] = useState<Priority>('medium');
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState(list.title);
@@ -21,16 +30,18 @@ export const TodoList: React.FC<TodoListProps> = ({ list, onToggleTodo, onUpdate
     const newTodo: TodoItemType = {
       id: Math.max(...list.todos.map(todo => todo.id), 0) + 1,
       text: newTodoText,
+      details: newTodoDetails,
       completed: false,
-      priority: newTodoPriority
+      priority: newTodoPriority,
     };
 
     onUpdateList({
       ...list,
-      todos: [...list.todos, newTodo]
+      todos: [...list.todos, newTodo],
     });
-    
+
     setNewTodoText('');
+    setNewTodoDetails('');
     setNewTodoPriority('medium');
   };
 
@@ -38,7 +49,7 @@ export const TodoList: React.FC<TodoListProps> = ({ list, onToggleTodo, onUpdate
     if (!editTitle.trim()) return;
     onUpdateList({
       ...list,
-      title: editTitle
+      title: editTitle,
     });
     setIsEditing(false);
   };
@@ -48,44 +59,54 @@ export const TodoList: React.FC<TodoListProps> = ({ list, onToggleTodo, onUpdate
       ...list,
       todos: list.todos.map(todo =>
         todo.id === todoId ? { ...todo, priority } : todo
-      )
+      ),
     });
   };
 
   const handleDeleteTodo = (todoId: number) => {
     onUpdateList({
       ...list,
-      todos: list.todos.filter(todo => todo.id !== todoId)
+      todos: list.todos.filter(todo => todo.id !== todoId),
     });
   };
 
   const handleUpdateListPriority = (priority: Priority) => {
     onUpdateList({
       ...list,
-      priority
+      priority,
     });
   };
 
   const priorityColors = {
     high: '#dc3545',
     medium: '#ffc107',
-    low: '#28a745'
+    low: '#28a745',
   };
 
   return (
-    <div className="todo-list" style={{ 
-      margin: '16px 0', 
-      padding: '16px', 
-      backgroundColor: '#f5f5f5', 
-      borderRadius: '8px'
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+    <div
+      className="todo-list"
+      style={{
+        margin: '16px 0',
+        padding: '16px',
+        backgroundColor: '#f5f5f5',
+        borderRadius: '8px',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '16px',
+        }}
+      >
         {isEditing ? (
           <div style={{ display: 'flex', gap: '10px', flex: 1 }}>
             <input
               type="text"
               value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
+              onChange={e => setEditTitle(e.target.value)}
               style={{ flex: 1, padding: '8px' }}
             />
             <button
@@ -96,7 +117,7 @@ export const TodoList: React.FC<TodoListProps> = ({ list, onToggleTodo, onUpdate
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                cursor: 'pointer'
+                cursor: 'pointer',
               }}
             >
               Save
@@ -108,13 +129,15 @@ export const TodoList: React.FC<TodoListProps> = ({ list, onToggleTodo, onUpdate
             <div style={{ display: 'flex', gap: '10px' }}>
               <select
                 value={list.priority}
-                onChange={(e) => handleUpdateListPriority(e.target.value as Priority)}
-                style={{ 
+                onChange={e =>
+                  handleUpdateListPriority(e.target.value as Priority)
+                }
+                style={{
                   padding: '4px',
                   backgroundColor: priorityColors[list.priority],
                   color: list.priority === 'medium' ? '#000' : '#fff',
                   border: 'none',
-                  borderRadius: '4px'
+                  borderRadius: '4px',
                 }}
               >
                 <option value="low">Low</option>
@@ -129,7 +152,7 @@ export const TodoList: React.FC<TodoListProps> = ({ list, onToggleTodo, onUpdate
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
                 }}
               >
                 Edit Title
@@ -139,22 +162,20 @@ export const TodoList: React.FC<TodoListProps> = ({ list, onToggleTodo, onUpdate
         )}
       </div>
 
-      <form 
-        onSubmit={handleAddTodo}
-        style={{ marginBottom: '16px' }}
-      >
+      <form onSubmit={handleAddTodo} style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', gap: '10px' }}>
           <input
             type="text"
             value={newTodoText}
-            onChange={(e) => setNewTodoText(e.target.value)}
-            placeholder="New Todo"
+            onChange={e => setNewTodoText(e.target.value)}
+            placeholder="What's next?..."
             style={{ flex: 1, padding: '8px' }}
             required
           />
+
           <select
             value={newTodoPriority}
-            onChange={(e) => setNewTodoPriority(e.target.value as Priority)}
+            onChange={e => setNewTodoPriority(e.target.value as Priority)}
             style={{ padding: '8px' }}
           >
             <option value="low">Low</option>
@@ -169,10 +190,10 @@ export const TodoList: React.FC<TodoListProps> = ({ list, onToggleTodo, onUpdate
               color: 'white',
               border: 'none',
               borderRadius: '4px',
-              cursor: 'pointer'
+              cursor: 'pointer',
             }}
           >
-            Add Todo
+            Let's do it
           </button>
         </div>
       </form>
