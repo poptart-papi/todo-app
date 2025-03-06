@@ -163,38 +163,50 @@ export const TodoList: React.FC<TodoListProps> = ({
       </div>
 
       <form onSubmit={handleAddTodo} style={{ marginBottom: '16px' }}>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <input
-            type="text"
-            value={newTodoText}
-            onChange={e => setNewTodoText(e.target.value)}
-            placeholder="What's next?..."
-            style={{ flex: 1, padding: '8px' }}
-            required
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <input
+              type="text"
+              value={newTodoText}
+              onChange={e => setNewTodoText(e.target.value)}
+              placeholder="What's next?..."
+              style={{ flex: 1, padding: '8px' }}
+              required
+            />
+
+            <select
+              value={newTodoPriority}
+              onChange={e => setNewTodoPriority(e.target.value as Priority)}
+              style={{ padding: '8px' }}
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+
+          <textarea
+            value={newTodoDetails}
+            onChange={e => setNewTodoDetails(e.target.value)}
+            placeholder="Add details (optional)"
+            style={{ width: '100%', padding: '8px', minHeight: '60px' }}
           />
 
-          <select
-            value={newTodoPriority}
-            onChange={e => setNewTodoPriority(e.target.value as Priority)}
-            style={{ padding: '8px' }}
-          >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-          </select>
-          <button
-            type="submit"
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          >
-            Let's do it
-          </button>
+          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <button
+              type="submit"
+              style={{
+                padding: '8px 16px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              Let's do it
+            </button>
+          </div>
         </div>
       </form>
 

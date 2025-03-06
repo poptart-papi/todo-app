@@ -41,6 +41,7 @@ export const Project: React.FC<ProjectProps> = ({
     if (!editTitle.trim()) return;
     project.title = editTitle;
     project.description = editDescription;
+    onUpdateDueDate(editDueDate || null);
     setIsEditing(false);
   };
 
@@ -251,3 +252,6 @@ export const Project: React.FC<ProjectProps> = ({
     </div>
   );
 };
+function onUpdateDueDate(arg0: string | null) {
+  throw new Error('Function not implemented.');
+}

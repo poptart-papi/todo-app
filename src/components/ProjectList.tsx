@@ -1,16 +1,122 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Project as ProjectType, Priority } from '../types';
 import { Project } from './Project';
 
-const initialProjects: ProjectType[] = [];
+const STORAGE_KEY = 'project-management-data';
+const CURRENT_VERSION = 1;
 
 export const ProjectList: React.FC = () => {
-  const [projects, setProjects] = useState<ProjectType[]>(initialProjects);
+  useEffect(() => {
+    // Check if we need to migrate data from older versions
+    const storedVersion = localStorage.getItem(`${STORAGE_KEY}-version`);
+
+    // If no version or older version, could run migration code here
+    if (!storedVersion || parseInt(storedVersion) < CURRENT_VERSION) {
+      // Run migration logic if needed
+
+      // Update version
+      localStorage.setItem(
+        `${STORAGE_KEY}-version`,
+        CURRENT_VERSION.toString()
+      );
+    }
+  }, []);
+
+  const checkStorageLimit = (data: ProjectType[]) => {
+    try {
+      const serializedData = JSON.stringify(data);
+      const size = new Blob([serializedData]).size;
+
+      // localStorage typically has ~5MB limit, warn at 4MB
+      const warningThreshold = 4 * 1024 * 1024; // 4MB
+
+      if (size > warningThreshold) {
+        alert(
+          `Warning: Your project data is getting large (${(
+            size /
+            (1024 * 1024)
+          ).toFixed(2)}MB). ` +
+            'Consider exporting and clearing some projects to avoid data loss.'
+        );
+      }
+
+      return size;
+    } catch (error) {
+      console.error('Error checking storage size:', error);
+      return 0;
+    }
+  };
+
+  const loadProjectsFromStorage = (): ProjectType[] => {
+    try {
+      const storedData = localStorage.getItem(STORAGE_KEY);
+      if (!storedData) return [];
+
+      const parsedData = JSON.parse(storedData);
+
+      // Validate that we have an array
+      if (!Array.isArray(parsedData)) {
+        console.warn('Stored data is not an array, resetting to empty array');
+        return [];
+      }
+
+      return parsedData.filter(project => {
+        const isValid =
+          typeof project === 'object' &&
+          project !== null &&
+          typeof project.id === 'number' &&
+          typeof project.title === 'string';
+
+        if (!isValid) {
+          console.warn(
+            'Found invalid project object, filtering it out',
+            project
+          );
+        }
+        return isValid;
+      });
+    } catch (error) {
+      console.error('Error loading data from localStorage:', error);
+      return [];
+    }
+  };
+
+  const [projects, setProjects] = useState<ProjectType[]>(
+    loadProjectsFromStorage()
+  );
   const [newProjectTitle, setNewProjectTitle] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
   const [newProjectPriority, setNewProjectPriority] =
     useState<Priority>('medium');
   const [newProjectDueDate, setNewProjectDueDate] = useState('');
+  const [storageAvailable, setStorageAvailable] = useState(true);
+
+  useEffect(() => {
+    try {
+      const serializedProjects = JSON.stringify(projects);
+      localStorage.setItem(STORAGE_KEY, serializedProjects);
+
+      // Check size after saving
+      checkStorageLimit(projects);
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+      alert(
+        'Failed to save your changes. You may have reached the storage limit.'
+      );
+    }
+  }, [projects]);
+
+  useEffect(() => {
+    try {
+      const testKey = '__test__';
+      localStorage.setItem(testKey, testKey);
+      localStorage.removeItem(testKey);
+      setStorageAvailable(true);
+    } catch (e) {
+      setStorageAvailable(false);
+      console.warn('localStorage is not available. Data will not persist.');
+    }
+  }, []);
 
   const handleToggleTodo = (todoId: number) => {
     setProjects(prevProjects =>
@@ -113,6 +219,51 @@ export const ProjectList: React.FC = () => {
     );
   };
 
+  const handleClearAllData = () => {
+    if (
+      window.confirm(
+        'Are you sure you want to delete ALL projects? This cannot be undone.'
+      )
+    ) {
+      setProjects([]);
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  };
+
+  const handleExportData = () => {
+    const dataStr = JSON.stringify(projects, null, 2);
+    const dataUri =
+      'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+    const exportFileDefaultName = 'project-data.json';
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      try {
+        const importedData = JSON.parse(e.target?.result as string);
+        if (Array.isArray(importedData)) {
+          setProjects(importedData);
+        } else {
+          alert('Invalid data format. Import failed.');
+        }
+      } catch (error) {
+        console.error('Error importing data:', error);
+        alert('Error importing data. Please check the file format.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div
       className="project-list"
@@ -131,6 +282,81 @@ export const ProjectList: React.FC = () => {
       >
         Project Management System
       </h1>
+
+      {!storageAvailable && (
+        <div
+          style={{
+            padding: '10px',
+            backgroundColor: '#fff3cd',
+            color: '#856404',
+            borderRadius: '4px',
+            marginBottom: '20px',
+          }}
+        >
+          <strong>Warning:</strong> Local storage is not available in your
+          browser. Your data will not be saved between sessions.
+        </div>
+      )}
+
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          marginBottom: '20px',
+          padding: '10px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+        }}
+      >
+        <h2 style={{ margin: 0 }}>Data Management</h2>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <input
+            type="file"
+            id="import-file"
+            accept=".json"
+            style={{ display: 'none' }}
+            onChange={handleImportData}
+          />
+          <label
+            htmlFor="import-file"
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#6c757d',
+              color: 'white',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            Import
+          </label>
+          <button
+            onClick={handleExportData}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            Export
+          </button>
+          <button
+            onClick={handleClearAllData}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+            }}
+          >
+            Clear All
+          </button>
+        </div>
+      </div>
 
       <div
         style={{
